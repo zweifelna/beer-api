@@ -1,9 +1,9 @@
 var express = require('express');
-var beersRouter = express.Router();
+var router = express.Router();
 
 /* GET beers listing. */
-beersRouter.get('/', function(req, res, next) {
-    res.send('respond with a resource');
+router.get('/', function(req, res, next) {
+    res.send('respond with a beer resource');
   });
 
-module.exports = beersRouter;
+module.exports = router;
