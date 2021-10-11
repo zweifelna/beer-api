@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
- const { port } = require('../config.js');
+const { port } = require('../config.js');
 
 var app = require('../app');
 var debug = require('debug')('beer-api:server');

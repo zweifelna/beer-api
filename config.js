@@ -7,3 +7,4 @@ try {
 
   // Retrieve configuration from environment variables.
 exports.port = process.env.PORT || 3000;
+exports.url_prefix = process.env.URL_PREFIX;
