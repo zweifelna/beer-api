@@ -3,16 +3,12 @@
 /**
  * Module dependencies.
  */
+ const { port } = require('../config.js');
 
 var app = require('../app');
 var debug = require('debug')('beer-api:server');
 var http = require('http');
 
-/**
- * Get port from environment and store in Express.
- */
-
-var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
