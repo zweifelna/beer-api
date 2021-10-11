@@ -6,3 +6,7 @@ body {
 a {
   color: #00B7FF;
 }
+p{
+  background-image: -o-linear-gradient(#eee, #FF0000);
+}
+
