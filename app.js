@@ -1,4 +1,7 @@
-const { url_prefix } = require('./config.js');
+const { url_prefix, database_server, database_name } = require('./config.js');
+const mongoose = require('mongoose');
+mongoose.Promise = Promise;
+mongoose.connect('mongodb://' + database_server + '/' + database_name);
 
 var createError = require('http-errors');
 var express = require('express');
