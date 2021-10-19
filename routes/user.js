@@ -45,9 +45,9 @@ router.post('/',[
   body('lastname', 'lastname must not have more than 255 characters')
     .isLength({max: 255 }),
   body('firstname', 'firstname should contain only alpha characters')
-    .isAlpha(),
+    .isAlpha('en-US', {ignore: ' '}),
   body('lastname', 'lastname should contain only alpha characters')
-    .isAlpha(),
+    .isAlpha('en-US', {ignore: ' -'}),
 ], function(req, res, next) {
   try {
     validationResult(req).throw();
