@@ -24,7 +24,7 @@ router.get('/',[
         // Send the error object to the user
         res.status(400).json(validationError);
       }
-      
+
     });
   } else {
     User.find().sort('name').exec(function(err, user) {
@@ -45,7 +45,7 @@ router.post('/',[
   body('lastname', 'lastname must not have more than 255 characters')
     .isLength({max: 255 }),
   body('firstname', 'firstname should contain only alpha characters')
-    .isAlpha('en-US', {ignore: ' '}),
+    .isAlpha('en-US', {ignore: '-'}),
   body('lastname', 'lastname should contain only alpha characters')
     .isAlpha('en-US', {ignore: ' -'}),
 ], function(req, res, next) {
