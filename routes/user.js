@@ -1,5 +1,7 @@
 var express = require('express');
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
+const { check, body, query, validationResult }
+    = require('express-validator');
 var router = express.Router();
 const User = require('../models/user');
 var UserSerializer = new JSONAPISerializer('user', {
@@ -8,20 +10,24 @@ var UserSerializer = new JSONAPISerializer('user', {
 });
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
+router.get('/',[
+  query('id', 'id must be alphanumeric')
+    .isAlphanumeric(),
+], function(req, res, next) {
 
   if(req.query.id) {
-    User.findOne({id: req.query.id}).exec(function(err, user) {
-      if (err) {
-        return next(err);
+    User.findOne({_id: req.query.id}).exec(function(err, user) {
+      try {
+        validationResult(req).throw();
+        res.send(UserSerializer.serialize([user]));
+      } catch (validationError) {
+        // Send the error object to the user
+        res.status(400).json(validationError);
       }
-      res.send(UserSerializer.serialize(user));
+      
     });
   } else {
     User.find().sort('name').exec(function(err, user) {
-      if (err) {
-        return next(err);
-      }
       res.send(UserSerializer.serialize(user));
     });
   }
@@ -29,18 +35,38 @@ router.get('/', function(req, res, next) {
 });
 
 /* POST new user */
-router.post('/', function(req, res, next) {
-  // Create a new document from the JSON in the request body
-  const newUser = new User(req.body);
-  console.log(newUser);
-  // Save that document
-  newUser.save(function(err, savedUser) {
-    if (err) {
-      return next(err);
-    }
-    // Send the saved document in the response
-    res.send(UserSerializer.serialize(savedUser));
-  });
+router.post('/',[
+  body('firstname', 'firstname can\'t be empty')
+    .not().isEmpty(),
+  body('lastname', 'lastname can\'t be empty')
+    .not().isEmpty(),
+  body('firstname', 'firstname must not have more than 255 characters')
+    .isLength({max: 255 }),
+  body('lastname', 'lastname must not have more than 255 characters')
+    .isLength({max: 255 }),
+  body('firstname', 'firstname should contain only alpha characters')
+    .isAlpha(),
+  body('lastname', 'lastname should contain only alpha characters')
+    .isAlpha(),
+], function(req, res, next) {
+  try {
+    validationResult(req).throw();
+
+    // Create a new document from the JSON in the request body
+    const newUser = new User(req.body);
+
+    // Save that document
+    newUser.save(function(err, savedUser) {
+      if (err) {
+        return next(err);
+      }
+      // Send the saved document in the response
+      res.send(UserSerializer.serialize(savedUser));
+    });
+  } catch (err) {
+    // Send the error object to the user
+    res.status(400).json(err);
+  }
 });
 
 router.delete('/', function (req, res) {
