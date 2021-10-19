@@ -3,10 +3,9 @@ const Schema = mongoose.Schema;
 
 // Define the schema for comments
 const commentSchema = new Schema({
-  id: int,
-  beerID: int,
   content: String,
-  rating: String
+  rating: String,
+  beerID: int
 });
 
 // Create the model from the schema and export it
