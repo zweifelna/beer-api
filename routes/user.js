@@ -25,7 +25,7 @@ router.get('/',[
         // Send the error object to the user
         res.status(400).json(validationError);
       }
-      
+
     });
   } else {
     User.find().sort('name').exec(function(err, user) {
