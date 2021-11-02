@@ -1,5 +1,6 @@
 var express = require('express');
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
+var JSONAPIError = require('jsonapi-serializer').Error;
 const { check, body, query, validationResult }
     = require('express-validator');
 var router = express.Router();
@@ -45,7 +46,7 @@ router.post('/',[
   body('lastname', 'lastname must not have more than 255 characters')
     .isLength({max: 255 }),
   body('firstname', 'firstname should contain only alpha characters')
-    .isAlpha('en-US', {ignore: ' '}),
+    .isAlpha('en-US', {ignore: '-'}),
   body('lastname', 'lastname should contain only alpha characters')
     .isAlpha('en-US', {ignore: ' -'}),
 ], function(req, res, next) {
@@ -69,10 +70,10 @@ router.post('/',[
   }
 });
 
-router.delete('/', function (req, res) {
-  User.deleteOne({ id: req.query.id }, function (err) {
+router.delete('/', function (req, res, next) {
+  User.deleteOne({ _id: req.query.id }, function (err) {
     if (err) {
-      return next(err);
+      res.status(400).json(err);
     }
     res.sendStatus(200);
   });
@@ -86,5 +87,11 @@ router.patch('/', function (req, res) {
     res.send(UserSerializer.serialize(user));
   });
 });
+
+router.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
 
 module.exports = router;
