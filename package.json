@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nodemon",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "apidoc": "apidoc -i routes -o docs"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -19,6 +20,7 @@
     "morgan": "~1.9.1"
   },
   "devDependencies": {
+    "apidoc": "^0.50.1",
     "nodemon": "^2.0.13"
   }
 }

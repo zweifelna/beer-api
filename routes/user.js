@@ -10,7 +10,16 @@ var UserSerializer = new JSONAPISerializer('user', {
   pluralizeType: false
 });
 
-/* GET users listing. */
+/**
+ * @api {get} /user/:id Request a user's information
+ * @apiName GetUser
+ * @apiGroup User
+ *
+ * @apiParam {Number} id Unique identifier of the user
+ *
+ * @apiSuccess {String} firstname First name of the user
+ * @apiSuccess {String} lastname  Last name of the user
+ */
 router.get('/',[
   query('id', 'id must be alphanumeric')
     .isAlphanumeric(),
