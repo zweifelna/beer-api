@@ -34,9 +34,51 @@ router.get('/',[
 
 });
 
-// /* GET beers listing. */
-// router.get('/', function(req, res, next) {
-//     res.send('respond with a beer resource');
-//   });
+/* POST new beer */
+router.post('/',[
+  body('name', 'name can\'t be empty')
+    .not().isEmpty(),
+  body('brewery', 'brewery can\'t be empty')
+    .not().isEmpty(),
+  body('alcoholLevel', 'alcoholLevel must be numeric, and below 100')
+    .isInt({max: 100 }),
+], function(req, res, next) {
+  try {
+    validationResult(req).throw();
+
+    // Create a new document from the JSON in the request body
+    const newBeer = new Beer(req.body);
+
+    // Save that document
+    newBeer.save(function(err, savedBeer) {
+      if (err) {
+        return next(err);
+      }
+      // Send the saved document in the response
+      res.send(BeerSerializer.serialize(savedBeer));
+    });
+  } catch (err) {
+    // Send the error object to the user
+    res.status(400).json(err);
+  }
+});
+
+router.delete('/', function (req, res) {
+  Beer.deleteOne({ id: req.query.id }, function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.sendStatus(200);
+  });
+});
+
+router.patch('/', function (req, res) {
+  Beer.findByIdAndUpdate(req.query.id, req.body, { new: true }, function (err, beer) {
+    if (err){
+      return next(err);
+    }
+    res.send(BeerSerializer.serialize(beer));
+  });
+});
 
 module.exports = router;
