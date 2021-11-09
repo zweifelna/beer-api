@@ -9,7 +9,28 @@ var BeerSerializer = new JSONAPISerializer('beer', {
   pluralizeType: false
 });
 
-/* GET beers listing. */
+/**
+ * @api {get} /beer/:id Request a beer's information
+ * @apiName GetBeer
+ * @apiGroup Beer
+ * @apiVersion 1.0.0
+ * @apiDescription Return the beer with the id in parameter
+ *
+ * @apiParam {String} id Unique identifier of the beer
+ *
+ * @apiExample Example
+ *     GET /api/v1/beer/332a234f5esa2h7212wqe3323 HTTP/1.1
+ *
+ * @apiSuccessExample 200 OK
+ *     HTTP/1.1 200 OK
+ *     Content-Type: application/json
+ *       {
+ *         "id": "332a234f5esa2h7212wqe3323",
+ *         "name": "John",
+ *         "brewery": "Doe",
+ *         "alcohoLevel": "8%" 
+ *       }
+ */
 router.get('/',[
   query('id', 'id must be alphanumeric')
     .isAlphanumeric(),
