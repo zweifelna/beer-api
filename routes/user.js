@@ -70,7 +70,10 @@ router.post('/',[
   }
 });
 
-router.delete('/', function (req, res, next) {
+router.delete('/',[
+  query('id', 'id must be alphanumeric')
+    .isAlphanumeric(),
+  ], function (req, res, next) {
   User.deleteOne({ _id: req.query.id }, function (err) {
     if (err) {
       res.status(400).json(err);
