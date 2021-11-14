@@ -4,8 +4,9 @@ const { check, body, query, validationResult }
     = require('express-validator');
 var router = express.Router();
 const Beer = require('../models/beer');
+const Brewery = require('../models/brewery');
 var BeerSerializer = new JSONAPISerializer('beer', {
-  attributes: ['name', 'brewery', 'alcoholLevel'],
+  attributes: ['name', 'breweryId', 'alcoholLevel', 'picture'],
   pluralizeType: false
 });
 
@@ -13,6 +14,9 @@ var BeerSerializer = new JSONAPISerializer('beer', {
 router.get('/',[
   query('id', 'id must be alphanumeric')
     .isAlphanumeric(),
+  body('breweryId').custom((value, {req}) => {
+    if (value !== Brewery.findOne({_id: value}));
+  })
 ], function(req, res, next) {
 
   if(req.query.id) {
@@ -38,10 +42,12 @@ router.get('/',[
 router.post('/',[
   body('name', 'name can\'t be empty')
     .not().isEmpty(),
-  body('brewery', 'brewery can\'t be empty')
+  body('breweryId', 'breweryId can\'t be empty')
     .not().isEmpty(),
   body('alcoholLevel', 'alcoholLevel must be numeric, and below 100')
     .isInt({max: 100 }),
+  body('picture', 'picture can\'t be empty')
+  .not().isEmpty(),
 ], function(req, res, next) {
   try {
     validationResult(req).throw();
