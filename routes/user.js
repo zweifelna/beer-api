@@ -1,13 +1,53 @@
 var express = require('express');
+const { secretKey } = require('../config.js');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
 var JSONAPIError = require('jsonapi-serializer').Error;
-const { check, body, query, validationResult }
+const { check, body, query, param, validationResult }
     = require('express-validator');
 var router = express.Router();
 const User = require('../models/user');
 var UserSerializer = new JSONAPISerializer('user', {
-  attributes: ['firstname', 'lastname'],
+  attributes: ['username', 'firstname', 'lastname'],
   pluralizeType: false
+});
+const {authenticate} = require('./auth');
+
+router.post('/login', function(req, res, next) {
+  User.findOne({ username: req.body.username }).exec(function(err, user) {
+    if (err) {
+      return next(err);
+    } else if (!user) {
+      return res.sendStatus(401);
+    }
+    
+    bcrypt.compare(req.body.password, user.password, function(err, valid) {
+      if (err) { return next(err); }
+      else if (!valid) { return res.sendStatus(401); }
+      // Generate a valid JWT which expires in 7 days.
+      const exp_length = 7 * 24 * 3600;
+      const exp = Math.floor(Date.now() / 1000) + exp_length;
+      const payload = { sub: user._id.toString(), exp: exp };
+      jwt.sign(payload, secretKey, function(err, token) {
+        const response = {
+          data: {
+            id: "",
+            type: "token",
+            attributes: {
+              access_token: token,
+              token_type: "Bearer",
+              expires_in: exp_length
+            }
+          }
+        };
+        response.data.id = Date.now();
+        res.send(response);
+        if (err) { return next(err); }
+        res.send(TokenSerializer.serialize(tokenToSend)); // Send the token to the client.
+      });
+    });
+  })
 });
 
 /**
@@ -31,13 +71,19 @@ var UserSerializer = new JSONAPISerializer('user', {
  *         "lastname": "Doe"
  *       }
  */
-router.get('/',[
-  query('id', 'id must be alphanumeric')
+router.get('/', function(req, res, next) {
+    User.find().sort('name').exec(function(err, user) {
+      res.send(UserSerializer.serialize(user));
+    });
+});
+
+router.get('/:id', [
+  param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
 ], function(req, res, next) {
 
   if(req.query.id) {
-    User.findOne({_id: req.query.id}).exec(function(err, user) {
+    User.findOne({_id: req.param.id}).exec(function(err, user) {
       try {
         validationResult(req).throw();
         res.send(UserSerializer.serialize([user]));
@@ -86,14 +132,29 @@ router.get('/',[
  *     }
  */
 router.post('/',[
+  body('username').custom(value => {
+    return User.findOne({username: value}).then(user => {
+      if (user) {
+        return Promise.reject('username already in use');
+      }
+    });
+  }),
+  body('username', 'username can\'t be empty')
+    .not().isEmpty(),
+  body('username', 'username can\'t be empty')
+    .not().isEmpty(),
   body('firstname', 'firstname can\'t be empty')
     .not().isEmpty(),
   body('lastname', 'lastname can\'t be empty')
     .not().isEmpty(),
+  body('username', 'username must not have more than 255 characters')
+    .isLength({max: 255 }),
   body('firstname', 'firstname must not have more than 255 characters')
     .isLength({max: 255 }),
   body('lastname', 'lastname must not have more than 255 characters')
     .isLength({max: 255 }),
+  body('username', 'username should contain only alpha characters')
+    .isAlpha('en-US', {ignore: '-_'}),
   body('firstname', 'firstname should contain only alpha characters')
     .isAlpha('en-US', {ignore: '-'}),
   body('lastname', 'lastname should contain only alpha characters')
@@ -102,16 +163,21 @@ router.post('/',[
   try {
     validationResult(req).throw();
 
-    // Create a new document from the JSON in the request body
-    const newUser = new User(req.body);
+    const plainPassword = req.body.password;
+    const costFactor = 10;
 
-    // Save that document
-    newUser.save(function(err, savedUser) {
+    bcrypt.hash(plainPassword, costFactor, function(err, hashedPassword) {
       if (err) {
         return next(err);
       }
-      // Send the saved document in the response
-      res.send(UserSerializer.serialize(savedUser));
+      const newUser = new User(req.body);
+      newUser.password = hashedPassword;
+      newUser.save(function(err, savedUser) {
+        if (err) {
+          return next(err);
+        }
+        res.send(UserSerializer.serialize(savedUser));
+      });
     });
   } catch (err) {
     // Send the error object to the user
@@ -132,13 +198,18 @@ router.post('/',[
  * @apiSuccessExample 204 No Content
  *     HTTP/1.1 204 No Content
  */
-router.delete('/', function (req, res, next) {
-  User.deleteOne({ _id: req.query.id }, function (err) {
-    if (err) {
-      res.status(400).json(err);
-    }
-    res.sendStatus(200);
-  });
+router.delete('/:id',[
+  param('id', 'user does not exist')
+    .isMongoId(),
+], function (req, res, next) {
+  try {
+    validationResult(req).throw();
+    User.deleteOne({ _id: req.param.id }, function (err) {
+      res.sendStatus(200);
+    });
+  } catch (err) {
+    res.status(400).json(err);
+  }
 });
 
 /**
@@ -167,8 +238,8 @@ router.delete('/', function (req, res, next) {
  *       "lastname": "Doe"
  *     }
  */
-router.patch('/', function (req, res) {
-  User.findByIdAndUpdate(req.query.id, req.body, { new: true }, function (err, user) {
+router.patch('/:id', function (req, res) {
+  User.findByIdAndUpdate(req.param.id, req.body, { new: true }, function (err, user) {
     if (err){
       return next(err);
     }
