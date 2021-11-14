@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
 var JSONAPIError = require('jsonapi-serializer').Error;
-const { check, body, query, validationResult }
+const { check, body, query, param, validationResult }
     = require('express-validator');
 var router = express.Router();
 const User = require('../models/user');
@@ -12,6 +12,7 @@ var UserSerializer = new JSONAPISerializer('user', {
   attributes: ['username', 'firstname', 'lastname'],
   pluralizeType: false
 });
+const {authenticate} = require('./auth');
 
 router.post('/login', function(req, res, next) {
   User.findOne({ username: req.body.username }).exec(function(err, user) {
@@ -70,13 +71,19 @@ router.post('/login', function(req, res, next) {
  *         "lastname": "Doe"
  *       }
  */
-router.get('/',[
-  query('id', 'id must be alphanumeric')
+router.get('/', function(req, res, next) {
+    User.find().sort('name').exec(function(err, user) {
+      res.send(UserSerializer.serialize(user));
+    });
+});
+
+router.get('/:id', [
+  param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
 ], function(req, res, next) {
 
   if(req.query.id) {
-    User.findOne({_id: req.query.id}).exec(function(err, user) {
+    User.findOne({_id: req.param.id}).exec(function(err, user) {
       try {
         validationResult(req).throw();
         res.send(UserSerializer.serialize([user]));
@@ -189,13 +196,13 @@ router.post('/',[
  * @apiSuccessExample 204 No Content
  *     HTTP/1.1 204 No Content
  */
-router.delete('/',[
-  query('id', 'user does not exist')
+router.delete('/:id',[
+  param('id', 'user does not exist')
     .isMongoId(),
 ], function (req, res, next) {
   try {
     validationResult(req).throw();
-    User.deleteOne({ _id: req.query.id }, function (err) {
+    User.deleteOne({ _id: req.param.id }, function (err) {
       res.sendStatus(200);
     });
   } catch (err) {
@@ -229,8 +236,8 @@ router.delete('/',[
  *       "lastname": "Doe"
  *     }
  */
-router.patch('/', function (req, res) {
-  User.findByIdAndUpdate(req.query.id, req.body, { new: true }, function (err, user) {
+router.patch('/:id', function (req, res) {
+  User.findByIdAndUpdate(req.param.id, req.body, { new: true }, function (err, user) {
     if (err){
       return next(err);
     }
