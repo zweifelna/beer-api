@@ -4,6 +4,7 @@
  * Module dependencies.
  */
 const { port } = require('../config.js');
+const { createWebSocketServer } = require('../ws');
 
 var app = require('../app');
 var debug = require('debug')('beer-api:server');
@@ -12,10 +13,11 @@ var http = require('http');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create HTTP and WebSocket servers.
  */
 
 var server = http.createServer(app);
+createWebSocketServer(server);
 
 /**
  * Listen on provided port, on all network interfaces.

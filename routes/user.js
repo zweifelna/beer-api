@@ -13,6 +13,7 @@ var UserSerializer = new JSONAPISerializer('user', {
   pluralizeType: false
 });
 const {authenticate} = require('./auth');
+const { broadcastMessage } = require('../ws');
 
 router.post('/login', function(req, res, next) {
   User.findOne({ username: req.body.username }).exec(function(err, user) {
@@ -44,6 +45,7 @@ router.post('/login', function(req, res, next) {
         response.data.id = Date.now();
         res.send(response);
         if (err) { return next(err); }
+        broadcastMessage({ hello: 'world' });
         res.send(TokenSerializer.serialize(tokenToSend)); // Send the token to the client.
       });
     });
@@ -73,6 +75,8 @@ router.post('/login', function(req, res, next) {
  */
 router.get('/', function(req, res, next) {
     User.find().sort('name').exec(function(err, user) {
+      broadcastMessage({ hello: 'world' });
+      console.log("Message sent!");
       res.send(UserSerializer.serialize(user));
     });
 });
