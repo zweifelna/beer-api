@@ -8,5 +8,7 @@ const brewerySchema = new Schema({
   location: String
 });
 
+
+
 // Create the model from the schema and export it
 module.exports = mongoose.model('Brewery', brewerySchema);
