@@ -1,6 +1,6 @@
 var express = require('express');
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
-const { check, body, query, validationResult }
+const { param, body, query, validationResult }
     = require('express-validator');
 var router = express.Router();
 const Beer = require('../models/beer');
@@ -45,16 +45,44 @@ var BeerSerializer = new JSONAPISerializer('beer', {
  *          ]
  *       }
  */
-router.get('/',[
-  query('id', 'id must be alphanumeric')
-    .isAlphanumeric(),
-  body('breweryId').custom((value, {req}) => {
-    if (value !== Brewery.findOne({_id: value}));
-  })
-], function(req, res, next) {
+router.get('/',
+  query('brewery_id', 'brewery_id must be alphanumeric').optional().isAlphanumeric(),
+  query('brewery_id').optional().custom(value => {
+      return Brewery.findOne({_id: value});
+    }),
+  query('search_name', 'search_name must be alphanumeric').optional().isAlphanumeric('en-US', {ignore: ' -'}),
+  function(req, res, next) {
+    try {
+      validationResult(req).throw();
+      let query = Beer.find();
+      if(req.query.brewery_id && req.query.search_name) {
+        Beer.find({breweryId: req.query.brewery_id,name: { $regex: req.query.search_name }}).exec(function(err, beer) {
+            res.send(BeerSerializer.serialize(beer));
+        });
+      } else if(req.query.brewery_id) {
+        Beer.find({breweryId: req.query.brewery_id}).exec(function(err, beer) {
+            res.send(BeerSerializer.serialize(beer));
+        });
+      } else if(req.query.search_name) {
+        Beer.find({name: { $regex: req.query.search_name }}).exec(function(err, beer) {
+            res.send(BeerSerializer.serialize(beer));
+        });
+      } else {
+        Beer.find().sort('name').exec(function(err, beer) {
+          res.send(BeerSerializer.serialize(beer));
+        });
+      }
+    } catch (err) {
+      // Send the error object to the user
+      res.status(400).json(err);
+    }
 
-  if(req.query.id) {
-    Beer.findOne({_id: req.query.id}).exec(function(err, beer) {
+});
+router.get('/:id', [
+  param('id', 'id must be alphanumeric')
+    .isAlphanumeric(),
+], function(req, res, next) {
+    Beer.findOne({_id: req.params.id}).exec(function(err, beer) {
       try {
         validationResult(req).throw();
         res.send(BeerSerializer.serialize([beer]));
@@ -64,12 +92,6 @@ router.get('/',[
       }
 
     });
-  } else {
-    Beer.find().sort('name').exec(function(err, beer) {
-      res.send(BeerSerializer.serialize(beer));
-    });
-  }
-
 });
 
 /**
