@@ -1,5 +1,5 @@
 var express = require('express');
-const { secretKey } = require('../config.js');
+const { secretKey, url } = require('../config.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
@@ -9,6 +9,12 @@ const { check, body, query, param, validationResult }
 var router = express.Router();
 const User = require('../models/user');
 var UserSerializer = new JSONAPISerializer('user', {
+  dataLinks: {
+    self: function(user) {
+      console.log(user);
+      return url + '/user/' + user.toObject()._id;
+    },
+  },
   attributes: ['username', 'firstname', 'lastname'],
   pluralizeType: false
 });
@@ -91,8 +97,6 @@ router.post('/login', function(req, res, next) {
  */
 router.get('/', function(req, res, next) {
     User.find().sort('name').exec(function(err, user) {
-      broadcastMessage({ hello: 'world' });
-      console.log("Message sent!");
       res.send(UserSerializer.serialize(user));
     });
 });
@@ -135,24 +139,16 @@ router.get('/:id', [
   param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
 ], function(req, res, next) {
+  User.findOne({_id: req.params.id}).exec(function(err, user) {
+    try {
+      validationResult(req).throw();
+      res.send(UserSerializer.serialize([user]));
+    } catch (validationError) {
+      // Send the error object to the user
+      res.status(400).json(validationError);
+    }
 
-  if(req.query.id) {
-    User.findOne({_id: req.param.id}).exec(function(err, user) {
-      try {
-        validationResult(req).throw();
-        res.send(UserSerializer.serialize([user]));
-      } catch (validationError) {
-        // Send the error object to the user
-        res.status(400).json(validationError);
-      }
-
-    });
-  } else {
-    User.find().sort('name').exec(function(err, user) {
-      res.send(UserSerializer.serialize(user));
-    });
-  }
-
+  });
 });
 
 /**
@@ -264,7 +260,7 @@ router.delete('/:id',[
 ], function (req, res, next) {
   try {
     validationResult(req).throw();
-    User.deleteOne({ _id: req.param.id }, function (err) {
+    User.deleteOne({ _id: req.params.id }, function (err) {
       res.sendStatus(200);
     });
   } catch (err) {
@@ -302,7 +298,7 @@ router.delete('/:id',[
  *        }
  */
 router.patch('/:id', function (req, res) {
-  User.findByIdAndUpdate(req.param.id, req.body, { new: true }, function (err, user) {
+  User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
     if (err){
       return next(err);
     }
