@@ -1,7 +1,14 @@
-const { url_prefix, database_server, database_name } = require('./config.js');
+const { url_prefix, database_server, database_name, database_url } = require('./config.js');
 const mongoose = require('mongoose');
 mongoose.Promise = Promise;
-mongoose.connect('mongodb://' + database_server + '/' + database_name);
+
+if (!database_url) {
+ mongoose.connect('mongodb://' + database_server + '/' + database_name);
+} else {
+  mongoose.connect(database_url);
+};
+
+
 
 var createError = require('http-errors');
 var express = require('express');
@@ -19,7 +26,10 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-app.use(logger('dev'));
+// Log requests (except in test mode).
+if (process.env.NODE_ENV !== 'test') {
+  app.use(logger('dev'));
+}
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
