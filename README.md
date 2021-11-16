@@ -2,7 +2,7 @@
 
 This is an academic project developed in order to deepen the basics of RESTful APIs and their implementation, for a latter mobile application development.
 
-The application is made by [Nathan Zweifel](https://github.com/zweifelna), [Robin Zweifel](https://github.com/zweiro) and [Steve Mettraux](https://github.com/Smettraux.
+The application is made by [Nathan Zweifel](https://github.com/zweifelna), [Robin Zweifel](https://github.com/zweiro) and [Steve Mettraux](https://github.com/Smettraux).
 
 The application is built with the following technologies:
 
