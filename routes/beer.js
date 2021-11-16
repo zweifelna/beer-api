@@ -10,6 +10,7 @@ var BeerSerializer = new JSONAPISerializer('beer', {
   attributes: ['name', 'breweryId', 'alcoholLevel', 'picture', 'comments'],
   pluralizeType: false
 });
+const { broadcastMessage } = require('../ws');
 
 /**
  * @api {get} /beer/id Request a beer's information
@@ -208,6 +209,11 @@ router.post('/:id/comment', authenticate, [
         return next(err);
       }
       res.send(BeerSerializer.serialize(beer));
+    });
+    broadcastMessage({
+      "action": "beer_comment",
+      "user" : "'" + req.currentUserId + "'",
+      "beer" : "'" + req.params.id + "'",
     });
 
   } catch (err) {

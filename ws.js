@@ -44,8 +44,6 @@ exports.createWebSocketServer = function(httpServer) {
 
 // Broadcast a message to all connected clients.
 exports.broadcastMessage = function(message) {
-  debug(message.hellohu);
-  debug(`Broadcasting message to all connected clients: ${JSON.stringify(message)}`);
   clients.forEach(client => {
     client.send(JSON.stringify(message));
   });
