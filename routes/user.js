@@ -148,6 +148,23 @@ router.get('/:id', [
       res.status(400).json(validationError);
     }
 
+  if(req.query.id) {
+    User.findOne({_id: req.params.id}).exec(function(err, user) {
+      try {
+        validationResult(req).throw();
+        res.send(UserSerializer.serialize([user]));
+      } catch (validationError) {
+        // Send the error object to the user
+        res.status(400).json(validationError);
+      }
+
+    });
+  } else {
+    User.find().sort('name').exec(function(err, user) {
+      res.send(UserSerializer.serialize(user));
+    });
+  }
+
   });
 });
 
