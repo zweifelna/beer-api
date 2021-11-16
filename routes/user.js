@@ -25,13 +25,13 @@ const { broadcastMessage } = require('../ws');
  * @api {post} /login Log in
  * @apiName Login
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Log in the api
  * 
  * @apiSuccess (Response body) {Object[]} data List of users data
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {String} data.id Unique identifier of the user
- * @apiSuccess (Response body) {String} data.links User affiliated ressource link
+ * @apiSuccess (Response body) {Object} data.links User links
+ * @apiSuccess (Response body) {String} data.links.self User affiliated ressource link
  * @apiSuccess (Response body) {Object} data.attributes User attributes information
  * @apiSuccess (Response body) {String} data.attributes.firstname First name of the user
  * @apiSuccess (Response body) {String} data.attributes.lastname Last name of the user
@@ -110,13 +110,13 @@ router.post('/login', function(req, res, next) {
  * @api {get} /user List users
  * @apiName GetUsers
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Return a list of users
  * 
  * @apiSuccess (Response body) {Object[]} data List of users data
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {String} data.id Unique identifier of the user
- * @apiSuccess (Response body) {String} data.links User affiliated ressource link
+ * @apiSuccess (Response body) {Object} data.links User links
+ * @apiSuccess (Response body) {String} data.links.self User affiliated ressource link
  * @apiSuccess (Response body) {Object} data.attributes User attributes information
  * @apiSuccess (Response body) {String} data.attributes.firstname First name of the user
  * @apiSuccess (Response body) {String} data.attributes.lastname Last name of the user
@@ -140,7 +140,7 @@ router.post('/login', function(req, res, next) {
  *               },
  *               "type": "user",
  *               "id": "32sfdsf191dgfds454dsfs3e",
- *              "links": {
+ *               "links": {
  *                "self": "undefined/api/v1/user/32sfdsf191dgfds454dsfs3e"
  *              },
  *               "attributes": {
@@ -169,7 +169,6 @@ router.get('/', authenticate, function(req, res, next) {
  * @api {get} /user/:id Request a user's information
  * @apiName GetUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Return the user with the id in parameter
  *
  * @apiParam {String} id Unique identifier of the user
@@ -177,7 +176,8 @@ router.get('/', authenticate, function(req, res, next) {
  * @apiSuccess (Response body) {Object} data User data
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {String} data.id Unique identifier of the user
- * @apiSuccess (Response body) {String} data.links User affiliated ressource link
+ * @apiSuccess (Response body) {Object} data.links User links
+ * @apiSuccess (Response body) {String} data.links.self User affiliated ressource link
  * @apiSuccess (Response body) {Object} data.attributes User attributes information
  * @apiSuccess (Response body) {String} data.attributes.firstname First name of the user
  * @apiSuccess (Response body) {String} data.attributes.lastname Last name of the user
@@ -264,12 +264,13 @@ router.get('/:id', authenticate, [
  * @api {post} /api/v1/user Create a user
  * @apiName CreateUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Registers a new user.
  *
  * @apiSuccess (Response body) {Object} data User data information
  * @apiSuccess (Response body) {String} data.id Unique identifier of the user
  * @apiSuccess (Response body) {String} data.type Type of ressource
+ * @apiSuccess (Response body) {Object} data.links User links
+ * @apiSuccess (Response body) {String} data.links.self User affiliated ressource link
  * @apiSuccess (Response body) {Object} data.attributes User attributes information
  * @apiSuccess (Response body) {String} data.attributes.firstname The user's firstname
  * @apiSuccess (Response body) {String} data.attributes.lastname The user's lastname
@@ -279,8 +280,10 @@ router.get('/:id', authenticate, [
  *     Content-Type: application/json
  *
  *     {
+ *       "username": "JoDo"
  *       "firstname": "John",
- *       "lastname": "Doe"
+ *       "lastname": "Doe",
+ *       "password": "ks8sadjK8"
  *     }
  *
  * @apiSuccessExample 201 Created
@@ -288,12 +291,13 @@ router.get('/:id', authenticate, [
  *     Content-Type: application/json
  *
  *     "data": {
- *              "type": "beer",
+ *              "type": "user",
  *              "id": "58b2926f5e1def0123e97281",
  *              "links": {
  *                "self": "undefined/api/v1/user/58b2926f5e1def0123e97281"
  *              },
  *              "attributes": {
+ *                "username": "JoDo"
  *                "firstname": "John",
  *                "lastname": "Doe"
  *               }
@@ -375,7 +379,6 @@ router.post('/',[
  * @api {delete} /api/v1/user/id Delete a user
  * @apiName DeleteUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Permanently deletes a user.
  *
  * @apiExample Example
@@ -426,7 +429,6 @@ router.delete('/:id', authenticate, [
  * @api {patch} /api/v1/user/id Partially update a user
  * @apiName PartiallyUpdateUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Partially updates a user's data (only the properties found in the request body will be updated).
  * All properties are optional.
  *

@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node ./bin/www",
-    "apidoc": "apidoc -i routes -o docs",
-    "...": "<PREVIOUS SCRIPTS HERE...>",
+    "apidoc": "apidoc -i routes -o docs -c apidoc.json",
     "test": "cross-env DATABASE_NAME=beerapi-test NODE_ENV=test mocha spec/**/*.spec.js"
   },
   "dependencies": {

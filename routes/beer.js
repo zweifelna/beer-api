@@ -16,7 +16,6 @@ const { broadcastMessage } = require('../ws');
  * @api {get} /beer List Beers
  * @apiName GetBeers
  * @apiGroup Beer
- * @apiVersion 1.0.0
  * @apiDescription Return a list of beers
  *
  * 
@@ -117,7 +116,6 @@ router.get('/', authenticate,
  * @api {get} /beer/id Request a beer's information
  * @apiName GetBeer
  * @apiGroup Beer
- * @apiVersion 1.0.0
  * @apiDescription Return the beer with the id in parameter
  *
  * @apiParam {String} id Unique identifier of the beer
@@ -188,7 +186,6 @@ router.get('/:id', authenticate, [
  * @api {post} /api/v1/beer Create a beer
  * @apiName CreateBeer
  * @apiGroup Beer
- * @apiVersion 1.0.0
  * @apiDescription Registers a new beer.
  *
  * @apiSuccess (Response body) {Object} data Beer data information
@@ -280,7 +277,6 @@ router.post('/', authenticate, [
  * @api {delete} /api/v1/beer/id Delete a beer
  * @apiName DeleteBeer
  * @apiGroup Beer
- * @apiVersion 1.0.0
  * @apiDescription Permanently deletes a beer.
  *
  * @apiExample Example
@@ -350,7 +346,6 @@ router.post('/:id/comment', authenticate, [
  * @api {patch} /api/v1/beer/id Partially update a beer
  * @apiName PartiallyUpdateBeer
  * @apiGroup Beer
- * @apiVersion 1.0.0
  * @apiDescription Partially updates a beer's data (only the properties found in the request body will be updated).
  * All properties are optional.
  *

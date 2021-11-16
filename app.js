@@ -39,6 +39,9 @@ app.use(url_prefix, indexRouter);
 app.use(url_prefix + '/user', usersRouter);
 app.use(url_prefix + '/beer', beersRouter);
 
+// Serve the apiDoc documentation.
+app.use('/api/v1/apidoc', express.static(path.join(__dirname, 'docs')));
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

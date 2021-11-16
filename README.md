@@ -44,3 +44,21 @@ Now, with the use of postman, you can test the API, following our [API documenta
 2. From the index, you must first navigate to the [users](https://comem-beer-api.herokuapp.com/api/v1/user/) endpoint, and create a new user.
 
 3. Then, you may navigate to the [beers](https://comem-beer-api.herokuapp.com/api/v1/beer/) endpoint, and check the list of beers. You can also create a new beer, or [add a comment to an existing beer](https://comem-beer-api.herokuapp.com/api/v1/beer/6192d43002b8b72c117c41a8/comment).
+
+## WebSocket
+
+We implemented a WebSocket server, which allows you to receive messages from the server, such as when a user logs in, and when a new comment is added to a beer.
+
+You will recieve messages in a format that is similar to the one below:
+```json
+{
+  "action performed" : "beer_comment_added",
+  "user who commented" : "userId",
+  "beer commented on" : "beerId",
+}
+```
+
+### Connect the WS server:
+
+In postman, you can connect the WS server by adding the following address: `ws:comem-beer-api.herokuapp.com`, and then click on the `Connect` button.
+You can then see the messages in the console.
