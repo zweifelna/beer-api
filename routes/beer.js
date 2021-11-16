@@ -328,7 +328,15 @@ router.post('/:id/comment', authenticate, [
  * @apiName PartiallyUpdateBeer
  * @apiGroup Beer
  * @apiDescription Partially updates a beer's data (only the properties found in the request body will be updated).
- * All properties are optional.
+ * 
+ * @apiSuccess (Response body) {Object} data Beer data information
+ * @apiSuccess (Response body) {String} data.id Unique identifier of the beer
+ * @apiSuccess (Response body) {String} data.type Type of ressource
+ * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
+ * @apiSuccess (Response body) {String} data.attributes.name Name of the beer
+ * @apiSuccess (Response body) {String} data.attributes.brewery-id Brewery where the beer was made
+ * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
+ * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
  *
  * @apiExample Example
  *     PATCH /api/v1/beer/332a234f5esa2h7212wqe3323 HTTP/1.1
@@ -348,7 +356,7 @@ router.post('/:id/comment', authenticate, [
  *              "id": "332a234f5esa2h7212wqe3323",
  *              "attributes": {
  *                "name": "Houleuse",
- *                "brewery": "Docteur Gab's",
+ *                "brewery-id": "kjkas87asdk",
  *                "alcoholLevel": "4.8",
  *                "picture": "path"
  *               }
