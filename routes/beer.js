@@ -18,19 +18,27 @@ const { broadcastMessage } = require('../ws');
  * @apiGroup Beer
  * @apiDescription Return a list of beers
  *
+ * @apiParam {String} [search_name]       Optional name of the beer
+ * @apiParam {String} [brewery_id]       Optional id of the brewery
  * 
  * @apiSuccess (Response body) {Object[]} data List of beers data
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {String} data.id Unique identifier of the beer
  * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
  * @apiSuccess (Response body) {String} data.attributes.name Name of the beer
- * @apiSuccess (Response body) {String} data.attributes.brewery-id Brewery where the beer was made
+ * @apiSuccess (Response body) {String} data.attributes.brewery-id Reference to the brewery
  * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
  * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
- *
+ * @apiSuccess (Response body) {Object[]} data.attributes.comments List of comments
+ * @apiSuccess (Response body) {String} data.attributes.comments.userId Reference to the author user
+ * @apiSuccess (Response body) {String} data.attributes.comments.body Content of the comment
+ * @apiSuccess (Response body) {Date} data.attributes.comments.date Date when the comment was posted
+ * @apiSuccess (Response body) {Number} data.attributes.comments.rating Rating of the beer
  * 
- * @apiExample Example
+ * @apiExample Basic Example
  *     GET /api/v1/beer HTTP/1.1
+ * @apiExample Example With Parameters
+ *     GET /api/v1/beer?search_name=DrGab&brewery_id=61928ac4880d475be35509a7 HTTP/1.1
  *
  * @apiSuccessExample 200 OK
  *     HTTP/1.1 200 OK
@@ -43,15 +51,25 @@ const { broadcastMessage } = require('../ws');
  *                "name": "Swaf",
  *                "brewery-id": "asd7sads6adgx787",
  *                "alcoholLevel": "4.8"
- *                "picture": "path"
+ *                "picture": "path",
+ *                "comments": [
+ *                  {
+ *                    "userId": "619107e1805f1f900c8587e5",
+ *                    "body": "C'est pas mal, mais ça manque de gras",
+ *                    "rating": 4,
+ *                    "_id": "6193fa3ebf7ab30717cde86c",
+ *                    "date": "2021-11-16T18:36:46.578Z"
+ *                  }
+ *                ] 
  *               },
  *              "type": "beer",
  *              "id": "883dskplxc773saj22n8882ky",
  *              "attributes": {
  *                "name": "Houleuse",
- *                "brewery-id": "oéh3jh3332ghjgfhh67ljk",
+ *                "breweryId": "oéh3jh3332ghjgfhh67ljk",
  *                "alcoholLevel": "6",
- *                "picture": "path"
+ *                "picture": "path",
+ *                "comments": []
  *               }
  *          ]
  *       }
@@ -128,7 +146,12 @@ router.get('/', authenticate,
  * @apiSuccess (Response body) {String} data.attributes.brewery Brewery where the beer was made
  * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
  * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
- *
+ * @apiSuccess (Response body) {Object[]} data.attributes.comments List of comments
+ * @apiSuccess (Response body) {String} data.attributes.comments.userId Reference to the author user
+ * @apiSuccess (Response body) {String} data.attributes.comments.body Content of the comment
+ * @apiSuccess (Response body) {Date} data.attributes.comments.date Date when the comment was posted
+ * @apiSuccess (Response body) {Number} data.attributes.comments.rating Rating of the beer
+ * 
  * @apiExample Example
  *     GET /api/v1/beer/332a234f5esa2h7212wqe3323 HTTP/1.1
  *
@@ -143,7 +166,16 @@ router.get('/', authenticate,
  *                "name": "Swaf",
  *                "brewery-id": "oj7d776392sddsad92ja",
  *                "alcoholLevel": "4.8",
- *                "picture": "path"
+ *                "picture": "path",
+ *                "comments": [
+ *                  {
+ *                    "userId": "619107e1805f1f900c8587e5",
+ *                    "body": "C'est pas mal, mais ça manque de gras",
+ *                    "rating": 4,
+ *                    "_id": "6193fa3ebf7ab30717cde86c",
+ *                    "date": "2021-11-16T18:36:46.578Z"
+ *                  }
+ *                ]
  *               }
  *          ]
  *       }
@@ -164,6 +196,14 @@ router.get('/', authenticate,
  *       }
  *       ]
  *     }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
  * 
  */
 router.get('/:id', authenticate, [
@@ -232,7 +272,11 @@ router.get('/:id/rating', authenticate, [
  * @apiSuccess (Response body) {String} data.attributes.brewery-id Brewery where the beer was made
  * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
  * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
- *
+ * @apiSuccess (Response body) {Object[]} data.attributes.comments List of comments
+ * @apiSuccess (Response body) {String} data.attributes.comments.userId Reference to the author user
+ * @apiSuccess (Response body) {String} data.attributes.comments.body Content of the comment
+ * @apiSuccess (Response body) {Date} data.attributes.comments.date Date when the comment was posted
+ * @apiSuccess (Response body) {Number} data.attributes.comments.rating Rating of the beer
  * 
  * @apiExample Example
  *     POST /api/v1/beer HTTP/1.1
@@ -240,8 +284,9 @@ router.get('/:id/rating', authenticate, [
  *
  *     {
  *       "name": "Swaf",
- *       "brewery": "Docteur Gab's",
- *       "alcoholLevel": "4.8"
+ *       "breweryId": "asd77asdsad9",
+ *       "alcoholLevel": "4.8",
+ *       "picture": "path"
  *     }
  *
  * @apiSuccessExample 201 Created
@@ -256,7 +301,16 @@ router.get('/:id/rating', authenticate, [
  *                "name": "Swaf",
  *                "brewery-id": "lkasdi8739js2kjsa29",
  *                "alcoholLevel": "4.8",
- *                "picture": "path"
+ *                "picture": "path",
+ *                "comments": [
+ *                  {
+ *                    "userId": "619107e1805f1f900c8587e5",
+ *                    "body": "C'est pas mal, mais ça manque de gras",
+ *                    "rating": 4,
+ *                    "_id": "6193fa3ebf7ab30717cde86c",
+ *                    "date": "2021-11-16T18:36:46.578Z"
+ *                  }
+ *                ]
  *               }
  *        }
  *     }
@@ -277,6 +331,14 @@ router.get('/:id/rating', authenticate, [
  *       }
  *       ]
  *     }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
  * 
  */
 router.post('/', authenticate, [
@@ -337,6 +399,15 @@ router.post('/', authenticate, [
  *       }
  *       ]
  *     }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
+ * 
  */
 router.delete('/', authenticate,  function (req, res) {
   Beer.deleteOne({ id: req.query.id }, function (err) {
@@ -383,8 +454,21 @@ router.post('/:id/comment', authenticate, [
  * @apiName PartiallyUpdateBeer
  * @apiGroup Beer
  * @apiDescription Partially updates a beer's data (only the properties found in the request body will be updated).
- * All properties are optional.
- *
+ * 
+ * @apiSuccess (Response body) {Object} data Beer data information
+ * @apiSuccess (Response body) {String} data.id Unique identifier of the beer
+ * @apiSuccess (Response body) {String} data.type Type of ressource
+ * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
+ * @apiSuccess (Response body) {String} data.attributes.name Name of the beer
+ * @apiSuccess (Response body) {String} data.attributes.brewery-id Brewery where the beer was made
+ * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
+ * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
+ * @apiSuccess (Response body) {Object[]} data.attributes.comments List of comments
+ * @apiSuccess (Response body) {String} data.attributes.comments.userId Reference to the author user
+ * @apiSuccess (Response body) {String} data.attributes.comments.body Content of the comment
+ * @apiSuccess (Response body) {Date} data.attributes.comments.date Date when the comment was posted
+ * @apiSuccess (Response body) {Number} data.attributes.comments.rating Rating of the beer
+ * 
  * @apiExample Example
  *     PATCH /api/v1/beer/332a234f5esa2h7212wqe3323 HTTP/1.1
  *     Content-Type: application/json
@@ -403,9 +487,18 @@ router.post('/:id/comment', authenticate, [
  *              "id": "332a234f5esa2h7212wqe3323",
  *              "attributes": {
  *                "name": "Houleuse",
- *                "brewery": "Docteur Gab's",
+ *                "brewery-id": "kjkas87asdk",
  *                "alcoholLevel": "4.8",
- *                "picture": "path"
+ *                "picture": "path",
+ *                "comments": [
+ *                  {
+ *                    "userId": "619107e1805f1f900c8587e5",
+ *                    "body": "C'est pas mal, mais ça manque de gras",
+ *                    "rating": 4,
+ *                    "_id": "6193fa3ebf7ab30717cde86c",
+ *                    "date": "2021-11-16T18:36:46.578Z"
+ *                  }
+ *                ]
  *               }
  *        }
  *     }
