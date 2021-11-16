@@ -11,7 +11,6 @@ const User = require('../models/user');
 var UserSerializer = new JSONAPISerializer('user', {
   dataLinks: {
     self: function(user) {
-      console.log(user);
       return url + '/user/' + user.toObject()._id;
     },
   },
@@ -504,7 +503,6 @@ router.patch('/:id', authenticate, function (req, res) {
 
 
 router.use(function(err, req, res, next) {
-  console.error(err.stack);
   var error = new JSONAPIError({
     status: "500",
     title: 'Something broke!',
