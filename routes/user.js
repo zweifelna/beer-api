@@ -376,7 +376,7 @@ router.post('/',[
 });
 
 /**
- * @api {delete} /api/v1/user/id Delete a user
+ * @api {delete} /api/v1/user/:id Delete a user
  * @apiName DeleteUser
  * @apiGroup User
  * @apiDescription Permanently deletes a user.

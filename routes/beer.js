@@ -19,7 +19,9 @@ const { broadcastMessage } = require('../ws');
  * @apiDescription Return a list of beers
  *
  * @apiParam {String} [search_name]       Optional name of the beer
- * @apiParam {String} [brewery_id]       Optional id of the brewery
+ * @apiParam {String} [brewery_id]        Optional id of the brewery
+ * @apiParam {String} [page]              Optional page number of the paginated beer list
+ * @apiParam {String} [pageSize]          Optional number of beer per page
  * 
  * @apiSuccess (Response body) {Object[]} data List of beers data
  * @apiSuccess (Response body) {String} data.type Type of ressource
@@ -131,7 +133,7 @@ router.get('/', authenticate,
 });
 
 /**
- * @api {get} /beer/id Request a beer's information
+ * @api {get} /beer/:id Request a beer's information
  * @apiName GetBeer
  * @apiGroup Beer
  * @apiDescription Return the beer with the id in parameter
@@ -336,7 +338,7 @@ router.post('/', authenticate, [
 });
 
 /**
- * @api {delete} /api/v1/beer/id Delete a beer
+ * @api {delete} /api/v1/beer/:id Delete a beer
  * @apiName DeleteBeer
  * @apiGroup Beer
  * @apiDescription Permanently deletes a beer.
@@ -382,6 +384,87 @@ router.delete('/', authenticate,  function (req, res) {
   });
 });
 
+/**
+ * @api {post} /api/v1/beer/:id/comment Add a Comment
+ * @apiName AddComment
+ * @apiGroup Beer
+ * @apiDescription Add a new comment.
+ *
+ * @apiSuccess (Response body) {Object} data Beer data information
+ * @apiSuccess (Response body) {String} data.id Unique identifier of the beer
+ * @apiSuccess (Response body) {String} data.type Type of ressource
+ * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
+ * @apiSuccess (Response body) {String} data.attributes.name Name of the beer
+ * @apiSuccess (Response body) {String} data.attributes.brewery-id Brewery where the beer was made
+ * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
+ * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
+ * @apiSuccess (Response body) {Object[]} data.attributes.comments List of comments
+ * @apiSuccess (Response body) {String} data.attributes.comments.userId Reference to the author user
+ * @apiSuccess (Response body) {String} data.attributes.comments.body Content of the comment
+ * @apiSuccess (Response body) {Date} data.attributes.comments.date Date when the comment was posted
+ * @apiSuccess (Response body) {Number} data.attributes.comments.rating Rating of the beer
+ * 
+ * @apiExample Example
+ *     POST /api/v1/beer HTTP/1.1
+ *     Content-Type: application/json
+ *
+ *     {
+ *        "body": "C'est pas mal, mais ça manque de gras",
+ *        "rating": 4,
+ *     }
+ *
+ * @apiSuccessExample 201 Created
+ *     HTTP/1.1 201 Created
+ *     Content-Type: application/json
+ *
+ *     {
+ *       "data": {
+ *              "type": "beer",
+ *              "id": "332a234f5esa2h7212wqe3323",
+ *              "attributes": {
+ *                "name": "Swaf",
+ *                "brewery-id": "lkasdi8739js2kjsa29",
+ *                "alcoholLevel": "4.8",
+ *                "picture": "path",
+ *                "comments": [
+ *                  {
+ *                    "userId": "619107e1805f1f900c8587e5",
+ *                    "body": "C'est pas mal, mais ça manque de gras",
+ *                    "rating": 4,
+ *                    "_id": "6193fa3ebf7ab30717cde86c",
+ *                    "date": "2021-11-16T18:36:46.578Z"
+ *                  }
+ *                ]
+ *               }
+ *        }
+ *     }
+ * 
+ * @apiError {Object} 400/BadRequest Some of the comment's properties are invalid
+ *
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     {
+ *       "errors": [
+ *       {
+ *         "value": "7",
+ *         "msg": "rating must be numeric, and between 1 and 5",  
+ *         "param": "rating",
+ *         "location": "body"
+ *       }
+ *       ]
+ *     }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
+ * 
+ */
 router.post('/:id/comment', authenticate, [
   param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
