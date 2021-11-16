@@ -1,7 +1,7 @@
 {
     "name": "Beer API",
     "version": "1.0.0",
-    "description": "",
+    "description": "REST API documentation for Beer API webapp",
     "title": "Beer API",
     "url" : ""
   }

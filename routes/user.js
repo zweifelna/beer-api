@@ -26,7 +26,6 @@ const { broadcastMessage } = require('../ws');
  * @api {post} /login Log in
  * @apiName Login
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Log in the api
  * 
  * @apiSuccess (Response body) {Object[]} data List of users data
@@ -112,7 +111,6 @@ router.post('/login', function(req, res, next) {
  * @api {get} /user List users
  * @apiName GetUsers
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Return a list of users
  * 
  * @apiSuccess (Response body) {Object[]} data List of users data
@@ -172,7 +170,6 @@ router.get('/', authenticate, function(req, res, next) {
  * @api {get} /user/:id Request a user's information
  * @apiName GetUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Return the user with the id in parameter
  *
  * @apiParam {String} id Unique identifier of the user
@@ -268,7 +265,6 @@ router.get('/:id', authenticate, [
  * @api {post} /api/v1/user Create a user
  * @apiName CreateUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Registers a new user.
  *
  * @apiSuccess (Response body) {Object} data User data information
@@ -384,7 +380,6 @@ router.post('/',[
  * @api {delete} /api/v1/user/id Delete a user
  * @apiName DeleteUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Permanently deletes a user.
  *
  * @apiExample Example
@@ -435,7 +430,6 @@ router.delete('/:id', authenticate, [
  * @api {patch} /api/v1/user/id Partially update a user
  * @apiName PartiallyUpdateUser
  * @apiGroup User
- * @apiVersion 1.0.0
  * @apiDescription Partially updates a user's data (only the properties found in the request body will be updated).
  * All properties are optional.
  *
