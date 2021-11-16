@@ -34,7 +34,7 @@ npm run dev
 For the purpose of testing, you can [get postman here](https://www.getpostman.com/).
 
 Navigate to [localhost:3000](http://localhost:3000/api/v1).
-Now, with the use of postman, you can test the API, following our [API documentation](ADD_DOCUMENTATION_URL_HERE).
+Now, with the use of postman, you can test the API, following our [API documentation](https://comem-beer-api.herokuapp.com/api/v1/apidoc/).
 
 
 ## Deployed API journey example.
