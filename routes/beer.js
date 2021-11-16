@@ -182,6 +182,42 @@ router.get('/:id', authenticate, [
     });
 });
 
+router.get('/:id/rating', authenticate, [
+  param('id', 'id must be alphanumeric')
+    .isAlphanumeric(),
+], function(req, res, next) {
+    /*Beer.findOne({_id: req.params.id}).exec(function(err, beer) {
+      try {
+        validationResult(req).throw();
+        res.send(BeerSerializer.serialize([beer]));
+      } catch (validationError) {
+        // Send the error object to the user
+        res.status(400).json(validationError);
+      }
+
+    });*/
+    Beer.aggregate([
+      { $unwind: "$comments" },
+      { $group : { _id: "$name", rating : {  $avg : "$comments.rating" } } }
+    ], function(err, beer) {
+        if(err)
+          handleError(err);
+        res.send(
+          {
+            "data": [
+              {
+                "type": "beer",
+                "id": req.params.id,
+                "attributes": {
+                  beer
+                }
+              }
+            ],
+        }
+          );
+    })
+});
+
 /**
  * @api {post} /api/v1/beer Create a beer
  * @apiName CreateBeer
