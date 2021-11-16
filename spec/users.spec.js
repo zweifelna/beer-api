@@ -4,6 +4,7 @@ const app = require('../app');
 const { expect } = require('chai');
 const { url_prefix, database_server, database_name } = require('../config.js');
 const { cleanUpDatabase } = require('./utils');
+const User = require('../models/user');
 
 beforeEach(cleanUpDatabase);
 describe('POST /user', function() {
@@ -36,6 +37,14 @@ describe('POST /user', function() {
 });
 
 describe('GET /api/v1/user', function() {
+    beforeEach(async function() {
+        // Create 2 people in the database before each test in this block.
+        const [ johnSmith, janeSmith ] = await Promise.all([
+          User.create({ username: 'JoDo', firstname: 'John', lastname: 'Doe', password: 'sad3kjlj'}),
+          User.create({ username: 'JaDo', firstname: 'Jane', lastname: 'Doe', password: 'slkj33hjk2'})
+        ]);
+    });
+    
     it('should retrieve the list of users', async function() {
         const res = await supertest(app)
         .get(url_prefix + '/user')
@@ -44,7 +53,30 @@ describe('GET /api/v1/user', function() {
         
         expect(res.body).to.be.an('object');
         expect(res.body.data).to.be.an('array');
-        expect(res.body.data).to.have.lengthOf(0);
+
+        // Check that the first user is the correct one.
+        expect(res.body.data[0].type).to.equal('user');
+        expect(res.body.data[0].id).to.be.a('string');
+        expect(res.body.data[0].attributes.username).to.equal('JoDo');
+        expect(res.body.data[0].attributes.firstname).to.equal('John');
+        expect(res.body.data[0].attributes.lastname).to.equal('Doe');
+
+        expect(res.body.data[0]).to.have.all.keys('type', 'id', 'attributes');
+        expect(res.body.data[0].attributes).to.have.all.keys('username', 'firstname', 'lastname');
+
+        // Check that the first user is the correct one.
+        expect(res.body.data[1].type).to.equal('user');
+        expect(res.body.data[1].id).to.be.a('string');
+        expect(res.body.data[1].attributes.username).to.equal('JaDo');
+        expect(res.body.data[1].attributes.firstname).to.equal('Jane');
+        expect(res.body.data[1].attributes.lastname).to.equal('Doe');
+
+        
+        expect(res.body.data[1]).to.have.all.keys('type', 'id', 'attributes');
+        expect(res.body.data[1].attributes).to.have.all.keys('username', 'firstname', 'lastname');
+        
+
+        expect(res.body.data).to.have.lengthOf(2);
     });
 });
 
