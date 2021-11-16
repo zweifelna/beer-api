@@ -5,8 +5,9 @@ const { param, body, query, validationResult }
 var router = express.Router();
 const Beer = require('../models/beer');
 const Brewery = require('../models/brewery');
+const {authenticate} = require('./auth');
 var BeerSerializer = new JSONAPISerializer('beer', {
-  attributes: ['name', 'breweryId', 'alcoholLevel', 'picture'],
+  attributes: ['name', 'breweryId', 'alcoholLevel', 'picture', 'comments'],
   pluralizeType: false
 });
 
@@ -56,7 +57,7 @@ var BeerSerializer = new JSONAPISerializer('beer', {
  *       }
  * 
  */
-router.get('/',
+router.get('/', authenticate,
   query('brewery_id', 'brewery_id must be alphanumeric').optional().isAlphanumeric(),
   query('brewery_id', 'brewery does not exist').optional().custom(value => {
       return Brewery.findOne({_id: value});
@@ -145,7 +146,7 @@ router.get('/',
  *     }
  * 
  */
-router.get('/:id', [
+router.get('/:id', authenticate, [
   param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
 ], function(req, res, next) {
@@ -223,7 +224,7 @@ router.get('/:id', [
  *     }
  * 
  */
-router.post('/',[
+router.post('/', authenticate, [
   body('name', 'name can\'t be empty')
     .not().isEmpty(),
   body('breweryId', 'breweryId can\'t be empty')
@@ -283,13 +284,41 @@ router.post('/',[
  *       ]
  *     }
  */
-router.delete('/', function (req, res) {
+router.delete('/', authenticate,  function (req, res) {
   Beer.deleteOne({ id: req.query.id }, function (err) {
     if (err) {
       return next(err);
     }
     res.sendStatus(200);
   });
+});
+
+router.post('/:id/comment', authenticate, [
+  param('id', 'id must be alphanumeric')
+    .isAlphanumeric(),
+  body('comment', 'comment can\'t be empty'),
+], function(req, res, next) {
+  try {
+    validationResult(req).throw();
+
+    console.log(req.body);
+
+    req.body.userId = req.currentUserId;
+    // Create a new mdocument from the JSON in the request body
+    Beer.findOneAndUpdate(
+      {_id: req.params.id},
+      {$push: {comments: req.body}},
+      {new: true}).exec(function(err, beer) {
+      if (err) {
+        return next(err);
+      }
+      res.send(BeerSerializer.serialize(beer));
+    });
+
+  } catch (err) {
+    // Send the error object to the user
+    res.status(400).json(err);
+  }
 });
 
 /**
@@ -333,7 +362,7 @@ router.delete('/', function (req, res) {
  *
  *     Authorization header is missing
  */
-router.patch('/', function (req, res) {
+router.patch('/', authenticate, function (req, res) {
   Beer.findByIdAndUpdate(req.query.id, req.body, { new: true }, function (err, beer) {
     if (err){
       return next(err);
