@@ -64,26 +64,47 @@ router.get('/', authenticate,
     }),
   query('search_name', 'search_name must be alphanumeric').optional().isAlphanumeric('en-US', {ignore: ' -'}),
   function(req, res, next) {
+
     try {
       validationResult(req).throw();
-      let query = Beer.find();
-      if(req.query.brewery_id && req.query.search_name) {
-        Beer.find({breweryId: req.query.brewery_id,name: { $regex: req.query.search_name }}).exec(function(err, beer) {
+      Beer.find().count(function(err, total) {
+        if (err) { return next(err); };
+        let query = Beer.find();
+  
+        // Parse the "page" param (default to 1 if invalid)
+        let page = parseInt(req.query.page, 10);
+        if (isNaN(page) || page < 1)
+          page = 1;
+  
+        // Parse the "pageSize" param (default to 100 if invalid)
+        let pageSize = parseInt(req.query.pageSize, 10);
+        if (isNaN(pageSize) || pageSize < 0 || pageSize > 100)
+          pageSize = 100;
+  
+        // Apply skip and limit to select the correct page of elements
+        query = query.skip((page - 1) * pageSize).limit(pageSize);
+        res.setHeader('Pagination-Page', page);
+        res.setHeader('Pagination-PageSize', pageSize);
+        res.setHeader('Pagination-Total', total);
+        
+        if(req.query.brewery_id && req.query.search_name) {
+          query.where({breweryId: req.query.brewery_id,name: { $regex: req.query.search_name }}).exec(function(err, beer) {
+              res.send(BeerSerializer.serialize(beer));
+          });
+        } else if(req.query.brewery_id) {
+          query.where({breweryId: req.query.brewery_id}).exec(function(err, beer) {
+              res.send(BeerSerializer.serialize(beer));
+          });
+        } else if(req.query.search_name) {
+          query.where({name: { $regex: req.query.search_name }}).exec(function(err, beer) {
+              res.send(BeerSerializer.serialize(beer));
+          });
+        } else {
+          query.sort('name').exec(function(err, beer) {
             res.send(BeerSerializer.serialize(beer));
-        });
-      } else if(req.query.brewery_id) {
-        Beer.find({breweryId: req.query.brewery_id}).exec(function(err, beer) {
-            res.send(BeerSerializer.serialize(beer));
-        });
-      } else if(req.query.search_name) {
-        Beer.find({name: { $regex: req.query.search_name }}).exec(function(err, beer) {
-            res.send(BeerSerializer.serialize(beer));
-        });
-      } else {
-        Beer.find().sort('name').exec(function(err, beer) {
-          res.send(BeerSerializer.serialize(beer));
-        });
-      }
+          });
+        }
+      });
     } catch (err) {
       // Send the error object to the user
       res.status(400).json(err);
@@ -298,8 +319,6 @@ router.post('/:id/comment', authenticate, [
   try {
     validationResult(req).throw();
 
-    console.log(req.body);
-
     req.body.userId = req.currentUserId;
     // Create a new mdocument from the JSON in the request body
     Beer.findOneAndUpdate(
@@ -381,7 +400,6 @@ router.patch('/', authenticate, function (req, res) {
 });
 
 router.use(function(err, req, res, next) {
-  console.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
