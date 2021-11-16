@@ -21,6 +21,52 @@ var UserSerializer = new JSONAPISerializer('user', {
 const {authenticate} = require('./auth');
 const { broadcastMessage } = require('../ws');
 
+
+/**
+ * @api {post} /login Log in
+ * @apiName Login
+ * @apiGroup User
+ * @apiVersion 1.0.0
+ * @apiDescription Log in the api
+ * 
+ * @apiSuccess (Response body) {Object[]} data List of users data
+ * @apiSuccess (Response body) {String} data.type Type of ressource
+ * @apiSuccess (Response body) {String} data.id Unique identifier of the user
+ * @apiSuccess (Response body) {String} data.links User affiliated ressource link
+ * @apiSuccess (Response body) {Object} data.attributes User attributes information
+ * @apiSuccess (Response body) {String} data.attributes.firstname First name of the user
+ * @apiSuccess (Response body) {String} data.attributes.lastname Last name of the user
+ *
+ * @apiExample Example
+ *     GET /api/v1/user HTTP/1.1
+ *
+ * @apiSuccessExample 200 OK
+ *     HTTP/1.1 200 OK
+ *     Content-Type: application/json
+ *       {
+ *          "data": {
+ *              "type": "user",
+ *              "id": "58b2926f5e1def0123e97281",
+ *              "links": {
+ *                "self": "undefined/api/v1/user/58b2926f5e1def0123e97281"
+ *              },
+ *              "attributes": {
+ *                "firstname": "John",
+ *                "lastname": "Doe"
+ *               }
+ *          }
+ *       }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
+ * 
+ */
+
 router.post('/login', function(req, res, next) {
   User.findOne({ username: req.body.username }).exec(function(err, user) {
     if (err) {
@@ -62,7 +108,7 @@ router.post('/login', function(req, res, next) {
 });
 
 /**
- * @api {get} /user/ List users
+ * @api {get} /user List users
  * @apiName GetUsers
  * @apiGroup User
  * @apiVersion 1.0.0
@@ -71,12 +117,13 @@ router.post('/login', function(req, res, next) {
  * @apiSuccess (Response body) {Object[]} data List of users data
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {String} data.id Unique identifier of the user
+ * @apiSuccess (Response body) {String} data.links User affiliated ressource link
  * @apiSuccess (Response body) {Object} data.attributes User attributes information
  * @apiSuccess (Response body) {String} data.attributes.firstname First name of the user
  * @apiSuccess (Response body) {String} data.attributes.lastname Last name of the user
  *
  * @apiExample Example
- *     GET /api/v1/user/58b2926f5e1def0123e97281 HTTP/1.1
+ *     GET /api/v1/user HTTP/1.1
  *
  * @apiSuccessExample 200 OK
  *     HTTP/1.1 200 OK
@@ -85,18 +132,32 @@ router.post('/login', function(req, res, next) {
  *          "data": [
  *              "type": "user",
  *              "id": "58b2926f5e1def0123e97281",
+ *              "links": {
+ *                "self": "undefined/api/v1/user/58b2926f5e1def0123e97281"
+ *              },
  *              "attributes": {
  *                "firstname": "John",
  *                "lastname": "Doe"
  *               },
  *               "type": "user",
  *               "id": "32sfdsf191dgfds454dsfs3e",
+ *              "links": {
+ *                "self": "undefined/api/v1/user/32sfdsf191dgfds454dsfs3e"
+ *              },
  *               "attributes": {
  *               "firstname": "Alice",
  *               "lastname": "Robert"
  *               }
  *          ]
  *       }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
  */
 router.get('/', authenticate, function(req, res, next) {
     User.find().sort('name').exec(function(err, user) {
@@ -117,6 +178,7 @@ router.get('/', authenticate, function(req, res, next) {
  * @apiSuccess (Response body) {Object} data User data
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {String} data.id Unique identifier of the user
+ * @apiSuccess (Response body) {String} data.links User affiliated ressource link
  * @apiSuccess (Response body) {Object} data.attributes User attributes information
  * @apiSuccess (Response body) {String} data.attributes.firstname First name of the user
  * @apiSuccess (Response body) {String} data.attributes.lastname Last name of the user
@@ -131,12 +193,40 @@ router.get('/', authenticate, function(req, res, next) {
  *          "data":{
  *              "type": "user",
  *              "id": "58b2926f5e1def0123e97281",
+ *              "links": {
+ *                "self": "undefined/api/v1/user/58b2926f5e1def0123e97281"
+ *              },
  *              "attributes": {
  *                "firstname": "John",
  *                "lastname": "Doe"
  *               }
  *          }
  *       }
+ * 
+ * @apiError {Object} 400/BadRequest Some of the user's properties are invalid
+ *
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     {
+ *       "errors": [
+ *       {
+ *         "value": "616;^",
+ *         "msg": "id must be alphanumeric",  
+ *         "param": "id",
+ *         "location": "params"
+ *       }
+ *       ]
+ *     }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
  */
 router.get('/:id', authenticate, [
   param('id', 'id must be alphanumeric')
@@ -201,11 +291,32 @@ router.get('/:id', authenticate, [
  *     "data": {
  *              "type": "beer",
  *              "id": "58b2926f5e1def0123e97281",
+ *              "links": {
+ *                "self": "undefined/api/v1/user/58b2926f5e1def0123e97281"
+ *              },
  *              "attributes": {
  *                "firstname": "John",
  *                "lastname": "Doe"
  *               }
  *        }
+ * 
+ * @apiError {Object} 400/BadRequest Some of the user's properties are invalid
+ *
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     {
+ *       "errors": [
+ *       {
+ *         "value": "joe322",
+ *         "msg": "username should contain only alpha characters",  
+ *         "param": "username",
+ *         "location": "body"
+ *       }
+ *       ]
+ *     }
+ * 
  */
 router.post('/',[
   body('username').custom(value => {
@@ -273,6 +384,22 @@ router.post('/',[
  *
  * @apiSuccessExample 204 No Content
  *     HTTP/1.1 204 No Content
+ * 
+ * @apiError {Object} 400/BadRequest You can delete only your account
+ *
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     "You can delete only your account!"
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
  */
 router.delete('/:id', authenticate, [
   param('id', 'user does not exist')
@@ -324,6 +451,31 @@ router.delete('/:id', authenticate, [
  *                "lastname": "Doe"
  *               }
  *        }
+ * 
+ * @apiError {Object} 400/BadRequest You can modify only your information
+ * 
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     "You can modify only your informations!"
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
+ * 
+ * @apiError {Object} 404/Forbidden The password can't be changed by this route.
+ * 
+ * @apiErrorExample {json} 403 Forbidden
+ *     HTTP/1.1 403 Forbidden
+ *     Content-Type: application/json
+ *
+ *     "The password can't be changed by this route."
+ * 
  */
 router.patch('/:id', authenticate, function (req, res) {
   if(req.currentUserId == req.params.id) {

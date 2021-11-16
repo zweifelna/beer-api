@@ -13,24 +13,25 @@ var BeerSerializer = new JSONAPISerializer('beer', {
 const { broadcastMessage } = require('../ws');
 
 /**
- * @api {get} /beer/id Request a beer's information
- * @apiName GetBeer
+ * @api {get} /beer List Beers
+ * @apiName GetBeers
  * @apiGroup Beer
  * @apiVersion 1.0.0
- * @apiDescription Return the beer with the id in parameter
+ * @apiDescription Return a list of beers
  *
- * @apiParam {String} [id] Unique identifier of the beer
- *
+ * 
  * @apiSuccess (Response body) {Object[]} data List of beers data
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {String} data.id Unique identifier of the beer
  * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
  * @apiSuccess (Response body) {String} data.attributes.name Name of the beer
- * @apiSuccess (Response body) {String} data.attributes.brewery Brewery where the beer was made
+ * @apiSuccess (Response body) {String} data.attributes.brewery-id Brewery where the beer was made
  * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
+ * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
  *
+ * 
  * @apiExample Example
- *     GET /api/v1/beer/332a234f5esa2h7212wqe3323 HTTP/1.1
+ *     GET /api/v1/beer HTTP/1.1
  *
  * @apiSuccessExample 200 OK
  *     HTTP/1.1 200 OK
@@ -41,11 +42,21 @@ const { broadcastMessage } = require('../ws');
  *              "id": "332a234f5esa2h7212wqe3323",
  *              "attributes": {
  *                "name": "Swaf",
- *                "brewery": "Docteur Gab's",
- *                "alcoholLevel": "4.8%"
+ *                "brewery-id": "asd7sads6adgx787",
+ *                "alcoholLevel": "4.8"
+ *                "picture": "path"
+ *               },
+ *              "type": "beer",
+ *              "id": "883dskplxc773saj22n8882ky",
+ *              "attributes": {
+ *                "name": "Houleuse",
+ *                "brewery-id": "oéh3jh3332ghjgfhh67ljk",
+ *                "alcoholLevel": "6",
+ *                "picture": "path"
  *               }
  *          ]
  *       }
+ * 
  */
 router.get('/', authenticate,
   query('brewery_id', 'brewery_id must be alphanumeric').optional().isAlphanumeric(),
@@ -80,6 +91,62 @@ router.get('/', authenticate,
     }
 
 });
+
+/**
+ * @api {get} /beer/id Request a beer's information
+ * @apiName GetBeer
+ * @apiGroup Beer
+ * @apiVersion 1.0.0
+ * @apiDescription Return the beer with the id in parameter
+ *
+ * @apiParam {String} id Unique identifier of the beer
+ * 
+ * @apiSuccess (Response body) {Object} data List of beers data
+ * @apiSuccess (Response body) {String} data.type Type of ressource
+ * @apiSuccess (Response body) {String} data.id Unique identifier of the beer
+ * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
+ * @apiSuccess (Response body) {String} data.attributes.name Name of the beer
+ * @apiSuccess (Response body) {String} data.attributes.brewery Brewery where the beer was made
+ * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
+ * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
+ *
+ * @apiExample Example
+ *     GET /api/v1/beer/332a234f5esa2h7212wqe3323 HTTP/1.1
+ *
+ * @apiSuccessExample 200 OK
+ *     HTTP/1.1 200 OK
+ *     Content-Type: application/json
+ *       {
+ *          "data": [
+ *              "type": "beer",
+ *              "id": "332a234f5esa2h7212wqe3323",
+ *              "attributes": {
+ *                "name": "Swaf",
+ *                "brewery-id": "oj7d776392sddsad92ja",
+ *                "alcoholLevel": "4.8",
+ *                "picture": "path"
+ *               }
+ *          ]
+ *       }
+ * 
+ * @apiError {Object} 400/BadRequest Some of the beer's properties are invalid
+ *
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     {
+ *       "errors": [
+ *       {
+ *         "value": "1928b5fbcd062c3a3basd^2b4cc",
+ *         "msg": "id must be alphanumeric",  
+ *         "param": "id",
+ *         "location": "params"
+ *       }
+ *       ]
+ *     }
+ * 
+ */
 router.get('/:id', authenticate, [
   param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
@@ -108,9 +175,11 @@ router.get('/:id', authenticate, [
  * @apiSuccess (Response body) {String} data.type Type of ressource
  * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
  * @apiSuccess (Response body) {String} data.attributes.name Name of the beer
- * @apiSuccess (Response body) {String} data.attributes.brewery Brewery where the beer was made
+ * @apiSuccess (Response body) {String} data.attributes.brewery-id Brewery where the beer was made
  * @apiSuccess (Response body) {Number} data.attributes.alcoholLevel Alcohol level of the beer
+ * @apiSuccess (Response body) {String} data.attributes.picture Picture of the beer
  *
+ * 
  * @apiExample Example
  *     POST /api/v1/beer HTTP/1.1
  *     Content-Type: application/json
@@ -131,11 +200,30 @@ router.get('/:id', authenticate, [
  *              "id": "332a234f5esa2h7212wqe3323",
  *              "attributes": {
  *                "name": "Swaf",
- *                "brewery": "Docteur Gab's",
- *                "alcoholLevel": "4.8"
+ *                "brewery-id": "lkasdi8739js2kjsa29",
+ *                "alcoholLevel": "4.8",
+ *                "picture": "path"
  *               }
  *        }
  *     }
+ * 
+ * @apiError {Object} 400/BadRequest Some of the beer's properties are invalid
+ *
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     {
+ *       "errors": [
+ *       {
+ *         "value": "4%",
+ *         "msg": "alcoholLevel must be numeric, and below 100",  
+ *         "param": "alcoholLevel",
+ *         "location": "body"
+ *       }
+ *       ]
+ *     }
+ * 
  */
 router.post('/', authenticate, [
   body('name', 'name can\'t be empty')
@@ -179,6 +267,23 @@ router.post('/', authenticate, [
  *
  * @apiSuccessExample 204 No Content
  *     HTTP/1.1 204 No Content
+ * 
+ * @apiError {Object} 400/BadRequest User does not exist
+ *
+ * @apiErrorExample {json} 400 Bad Request
+ *     HTTP/1.1 400 Bad Request
+ *     Content-Type: application/json
+ *
+ *     {
+ *       "errors": [
+ *       {
+ *         "value": "61937edsad4ea55bc7a478a3aff",
+ *         "msg": "user does not exist",  
+ *         "param": "id",
+ *         "location": "params"
+ *       }
+ *       ]
+ *     }
  */
 router.delete('/', authenticate,  function (req, res) {
   Beer.deleteOne({ id: req.query.id }, function (err) {
@@ -249,10 +354,19 @@ router.post('/:id/comment', authenticate, [
  *              "attributes": {
  *                "name": "Houleuse",
  *                "brewery": "Docteur Gab's",
- *                "alcoholLevel": "4.8"
+ *                "alcoholLevel": "4.8",
+ *                "picture": "path"
  *               }
  *        }
  *     }
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
  */
 router.patch('/', authenticate, function (req, res) {
   Beer.findByIdAndUpdate(req.query.id, req.body, { new: true }, function (err, beer) {
@@ -267,5 +381,6 @@ router.use(function(err, req, res, next) {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
+
 
 module.exports = router;
