@@ -17,6 +17,10 @@ const { broadcastMessage } = require('../ws');
  * @apiName GetBeers
  * @apiGroup Beer
  * @apiDescription Return a list of beers
+ * 
+ * @apiHeader {Number} Pagination-Page Actual page in the paginated list
+ * @apiHeader {Number} Pagination-PageSize Number of beers on the page
+ * @apiHeader {Number} Pagination-Total Total of beers
  *
  * @apiParam {String} [search_name]       Optional name of the beer
  * @apiParam {String} [brewery_id]        Optional id of the brewery
@@ -224,6 +228,48 @@ router.get('/:id', authenticate, [
     });
 });
 
+/**
+ * @api {get} /beer/:id/rating Request a beer's rating average
+ * @apiName GetRating
+ * @apiGroup Beer
+ * @apiDescription Return the average of rating of the beer with the id in parameter
+ *
+ * @apiParam {String} id Unique identifier of the beer
+ * 
+ * @apiSuccess (Response body) {Object} data List of beers data
+ * @apiSuccess (Response body) {String} data.type Type of ressource
+ * @apiSuccess (Response body) {String} data.id Unique identifier of the beer
+ * @apiSuccess (Response body) {Object} data.attributes Beer attributes information
+ * @apiSuccess (Response body) {String} data.attributes._id Name of the beer
+ * @apiSuccess (Response body) {String} data.attributes.rating Average of the rating
+ * 
+ * @apiExample Example
+ *     GET /api/v1/beer/332a234f5esa2h7212wqe3323 HTTP/1.1
+ *
+ * @apiSuccessExample 200 OK
+ *     HTTP/1.1 200 OK
+ *     Content-Type: application/json
+ *       {
+ *          "data": [
+ *              "type": "beer",
+ *              "id": "332a234f5esa2h7212wqe3323",
+ *              "attributes": {
+ *                "_id": "Swaf",
+ *                "rating": 4.666666666666667
+ *               }
+ *          ]
+ *       }
+ * 
+ * 
+ * @apiError {Object} 401/Unauthorized Authorization header is missing
+ *
+ * @apiErrorExample {json} 401 Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     Content-Type: text/html; charset=utf-8
+ *
+ *     Authorization header is missing
+ * 
+ */
 router.get('/:id/rating', authenticate, [
   param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
