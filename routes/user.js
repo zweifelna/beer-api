@@ -285,7 +285,11 @@ router.delete('/:id', authenticate, [
       res.status(400).json(err);
     }
   } else {
-    res.status(400).json("You can delete only your account!");
+    var error = new JSONAPIError({
+      status: "403",
+      title: "You can delete only your account!",
+    });
+    res.status(400).json(error);
   }
 });
 
@@ -321,7 +325,11 @@ router.delete('/:id', authenticate, [
 router.patch('/:id', authenticate, function (req, res) {
   if(req.currentUserId == req.params.id) {
     if(req.body.password) {
-      res.status(403).json("The password can't be changed by this route.");
+      var error = new JSONAPIError({
+        status: "403",
+        title: "The password can\'t be changed by this route.",
+      });
+      res.status(400).json(error);
     } else {
       User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
         if (err){
@@ -331,14 +339,22 @@ router.patch('/:id', authenticate, function (req, res) {
       });
     }
   } else {
-    res.status(400).json("You can modify only your informations!");
+    var error = new JSONAPIError({
+      status: "403",
+      title: 'You can modify only your informations!',
+    });
+    res.status(400).json(error);
   }
 });
 
 
 router.use(function(err, req, res, next) {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  var error = new JSONAPIError({
+    status: "500",
+    title: 'Something broke!',
+  });
+  res.status(500).json(error);
 });
 
 
