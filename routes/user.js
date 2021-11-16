@@ -137,7 +137,7 @@ router.get('/:id', [
 ], function(req, res, next) {
 
   if(req.query.id) {
-    User.findOne({_id: req.param.id}).exec(function(err, user) {
+    User.findOne({_id: req.params.id}).exec(function(err, user) {
       try {
         validationResult(req).throw();
         res.send(UserSerializer.serialize([user]));
@@ -264,7 +264,7 @@ router.delete('/:id',[
 ], function (req, res, next) {
   try {
     validationResult(req).throw();
-    User.deleteOne({ _id: req.param.id }, function (err) {
+    User.deleteOne({ _id: req.params.id }, function (err) {
       res.sendStatus(200);
     });
   } catch (err) {
@@ -302,7 +302,7 @@ router.delete('/:id',[
  *        }
  */
 router.patch('/:id', function (req, res) {
-  User.findByIdAndUpdate(req.param.id, req.body, { new: true }, function (err, user) {
+  User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
     if (err){
       return next(err);
     }
