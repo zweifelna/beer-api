@@ -298,12 +298,16 @@ router.delete('/:id',[
  *        }
  */
 router.patch('/:id', function (req, res) {
-  User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
-    if (err){
-      return next(err);
-    }
-    res.send(UserSerializer.serialize(user));
-  });
+  if(req.body.password) {
+    res.status(403).json("The password can't be changed by this route.");
+  } else {
+    User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
+      if (err){
+        return next(err);
+      }
+      res.send(UserSerializer.serialize(user));
+    });
+  }
 });
 
 

@@ -47,7 +47,7 @@ var BeerSerializer = new JSONAPISerializer('beer', {
  */
 router.get('/',
   query('brewery_id', 'brewery_id must be alphanumeric').optional().isAlphanumeric(),
-  query('brewery_id').optional().custom(value => {
+  query('brewery_id', 'brewery does not exist').optional().custom(value => {
       return Brewery.findOne({_id: value});
     }),
   query('search_name', 'search_name must be alphanumeric').optional().isAlphanumeric('en-US', {ignore: ' -'}),
@@ -226,6 +226,11 @@ router.patch('/', function (req, res) {
     }
     res.send(BeerSerializer.serialize(beer));
   });
+});
+
+router.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
 
 module.exports = router;
