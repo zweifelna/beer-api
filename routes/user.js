@@ -98,7 +98,10 @@ router.post('/login', function(req, res, next) {
         response.data.id = Date.now();
         res.send(response);
         if (err) { return next(err); }
-        broadcastMessage({ hello: 'world' });
+        broadcastMessage({
+          "action": "login",
+	        "user" : "'" + payload.sub + "'",
+        });
         res.send(TokenSerializer.serialize(tokenToSend)); // Send the token to the client.
       });
     });
