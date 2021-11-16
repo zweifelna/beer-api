@@ -95,7 +95,7 @@ router.post('/login', function(req, res, next) {
  *          ]
  *       }
  */
-router.get('/', function(req, res, next) {
+router.get('/', authenticate, function(req, res, next) {
     User.find().sort('name').exec(function(err, user) {
       res.send(UserSerializer.serialize(user));
     });
@@ -135,7 +135,7 @@ router.get('/', function(req, res, next) {
  *          }
  *       }
  */
-router.get('/:id', [
+router.get('/:id', authenticate, [
   param('id', 'id must be alphanumeric')
     .isAlphanumeric(),
 ], function(req, res, next) {
@@ -271,17 +271,21 @@ router.post('/',[
  * @apiSuccessExample 204 No Content
  *     HTTP/1.1 204 No Content
  */
-router.delete('/:id',[
+router.delete('/:id', authenticate, [
   param('id', 'user does not exist')
     .isMongoId(),
 ], function (req, res, next) {
-  try {
-    validationResult(req).throw();
-    User.deleteOne({ _id: req.params.id }, function (err) {
-      res.sendStatus(200);
-    });
-  } catch (err) {
-    res.status(400).json(err);
+  if(req.currentUserId == req.params.id) {
+    try {
+      validationResult(req).throw();
+      User.deleteOne({ _id: req.params.id }, function (err) {
+        res.sendStatus(200);
+      });
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  } else {
+    res.status(400).json("You can delete only your account!");
   }
 });
 
@@ -314,16 +318,20 @@ router.delete('/:id',[
  *               }
  *        }
  */
-router.patch('/:id', function (req, res) {
-  if(req.body.password) {
-    res.status(403).json("The password can't be changed by this route.");
+router.patch('/:id', authenticate, function (req, res) {
+  if(req.currentUserId == req.params.id) {
+    if(req.body.password) {
+      res.status(403).json("The password can't be changed by this route.");
+    } else {
+      User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
+        if (err){
+          return next(err);
+        }
+        res.send(UserSerializer.serialize(user));
+      });
+    }
   } else {
-    User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
-      if (err){
-        return next(err);
-      }
-      res.send(UserSerializer.serialize(user));
-    });
+    res.status(400).json("You can modify only your informations!");
   }
 });
 
